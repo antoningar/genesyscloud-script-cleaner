@@ -1,0 +1,37 @@
+{
+  "name": "lambda-function-template",
+  "version": "1.0.0",
+  "description": "Lambda function template with hexagonal architecture",
+  "main": "handler.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "cucumber-js",
+    "lint": "eslint src/**/*.ts",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "purecloud-platform-client-v2": "*"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "*",
+    "@types/aws-lambda": "*",
+    "@types/node": "^22",
+    "typescript": "^5",
+    "@typescript-eslint/eslint-plugin": "*",
+    "@typescript-eslint/parser": "*",
+    "eslint": "*",
+    "ts-node": "*"
+  },
+  "keywords": [
+    "lambda",
+    "aws",
+    "typescript",
+    "hexagonal-architecture",
+    "purecloud"
+  ],
+  "author": "",
+  "license": "ISC"
+}
