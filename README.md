@@ -1,6 +1,6 @@
-# Lambda Function Template
+# Genesys Cloud script cleaner
 
-A TypeScript template for AWS Lambda functions with business logic separation and Cucumber testing.
+Function to be able to clean unused objects from agent scripts
 
 ## Setup Instructions
 
@@ -19,7 +19,7 @@ A TypeScript template for AWS Lambda functions with business logic separation an
 
 ```
 ├── src/
-│   └── handler.ts          # Main Lambda handler
+│   └── handler.ts          # Lambda handler
 ├── business/
 │   └── example-service.ts  # Business logic and services
 ├── specs/
@@ -49,13 +49,6 @@ npx ts-node src/handler.ts
 npx ts-node src/handler.ts '{"name": "test", "value": 123}'
 ```
 
-### Usage
-
-1. Implement your business logic in the `business/` folder
-2. Update the handler in `src/handler.ts` to use your business services
-3. Write Gherkin specifications in the `specs/` folder
-4. Build and test before deployment
-
 ### CI/CD
 
 This template includes a GitHub Actions CI workflow that automatically runs on pull requests to the main branch. The CI pipeline:
@@ -68,9 +61,3 @@ This template includes a GitHub Actions CI workflow that automatically runs on p
 - **purecloud-platform-client-v2:** PureCloud SDK
 - **@cucumber/cucumber:** BDD testing framework
 - **TypeScript:** Type-safe JavaScript development
-
-### Next Steps
-
-- [ ] Write comprehensive Gherkin tests in specs/
-- [ ] Create your business services in the business/ folder
-- [ ] Update handler.ts with your specific business logic

@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
-import { ExampleService } from '../business/example-service';
+import { ExampleService } from './business/example-service';
 
 export const handler = async (
   event: APIGatewayProxyEvent,
