@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
-import { ExampleService } from './business/example-service';
+import { ScriptService } from './business/script-service';
 
 export const handler = async (
   event: APIGatewayProxyEvent,
@@ -9,7 +9,7 @@ export const handler = async (
     console.log('Event:', JSON.stringify(event, null, 2));
     console.log('Context:', JSON.stringify(context, null, 2));
 
-    const exampleService = new ExampleService();
+    const exampleService = new ScriptService();
     const result = await exampleService.process(event.body);
     
     return {
