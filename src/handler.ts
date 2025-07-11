@@ -10,7 +10,7 @@ export const handler = async (
     console.log('Context:', JSON.stringify(context, null, 2));
 
     const exampleService = new ScriptService();
-    const result = await exampleService.process(event.body);
+    const result = await exampleService.process("");
     
     return {
       statusCode: 200,
