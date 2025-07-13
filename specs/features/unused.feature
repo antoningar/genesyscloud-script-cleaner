@@ -5,3 +5,9 @@ Feature: Unused elements in raw scripts
     When the script service analyzes unused actions
     Then the analysis should complete successfully
     And the unused actions should be identified
+
+  Scenario: Unused Variabels
+    Given a raw script is loaded
+    When the script service analyzes unused variables
+    Then the analysis should complete successfully
+    And the unused variables should be identified
