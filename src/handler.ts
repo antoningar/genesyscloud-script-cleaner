@@ -1,16 +1,55 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
+import { APIGatewayProxyResult } from 'aws-lambda';
 import { ScriptService } from './business/script-service';
 
+interface Context {
+  clientContext: ClientContext
+};
+
+interface ClientContext {
+  gc_client_id: string
+  gc_client_secret: string
+  gc_aws_region: string
+};
+
+interface Event {
+  script_id: string
+}
+
+function validateOAuthCredentials(context: Context): boolean {
+  if (!context?.clientContext) {
+    return false;
+  }
+
+  const { gc_client_id, gc_client_secret, gc_aws_region } = context.clientContext;
+
+  return !!(gc_client_id && gc_client_id.trim() !== '' &&
+           gc_client_secret && gc_client_secret.trim() !== '' &&
+           gc_aws_region && gc_aws_region.trim() !== '');
+}
+
 export const handler = async (
-  event: APIGatewayProxyEvent,
+  event: Event,
   context: Context
 ): Promise<APIGatewayProxyResult> => {
   try {
     console.log('Event:', JSON.stringify(event, null, 2));
     console.log('Context:', JSON.stringify(context, null, 2));
 
+    if (!validateOAuthCredentials(context)) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: 'Unauthorized: Invalid or missing OAuth credentials',
+          error: 'Missing required OAuth parameters: gc_client_id, gc_client_secret, gc_aws_region',
+        }),
+      };
+    }
+
     const exampleService = new ScriptService();
-    const result = await exampleService.process("");
+    const result = await exampleService.process(event.script_id, undefined, context.clientContext);
     
     return {
       statusCode: 200,
@@ -41,34 +80,16 @@ export const handler = async (
 
 // CLI runner
 if (require.main === module) {
-  const fakeEvent: APIGatewayProxyEvent = {
-    body: process.argv[2] || '{"test": "data"}',
-    headers: {},
-    multiValueHeaders: {},
-    httpMethod: 'POST',
-    isBase64Encoded: false,
-    path: '/test',
-    pathParameters: null,
-    queryStringParameters: null,
-    multiValueQueryStringParameters: null,
-    stageVariables: null,
-    requestContext: {} as any,
-    resource: '/test'
+  const fakeEvent: Event = {
+    script_id: "24232afe-a306-4f76-ab7f-72a983eb9ba0"
   };
 
   const fakeContext: Context = {
-    callbackWaitsForEmptyEventLoop: false,
-    functionName: 'test-function',
-    functionVersion: '1',
-    invokedFunctionArn: 'arn:aws:lambda:us-east-1:123456789012:function:test-function',
-    memoryLimitInMB: '128',
-    awsRequestId: 'test-request-id',
-    logGroupName: '/aws/lambda/test-function',
-    logStreamName: '2023/01/01/[$LATEST]test-stream',
-    getRemainingTimeInMillis: () => 30000,
-    done: () => {},
-    fail: () => {},
-    succeed: () => {}
+    clientContext: {
+      gc_client_id: '',
+      gc_client_secret: '',
+      gc_aws_region: 'eu_west_1'
+    }
   };
 
   handler(fakeEvent, fakeContext)

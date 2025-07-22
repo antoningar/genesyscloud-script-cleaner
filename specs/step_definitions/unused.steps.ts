@@ -1,5 +1,6 @@
 import { Given, When, Then } from '@cucumber/cucumber';
-import { ScriptService, Result } from '../../src/business/script-service';
+import { ScriptService } from '../../src/business/script-service';
+import { Result } from '../../src/business/models'
 import { strict as assert } from 'assert';
 import * as path from 'path';
 
@@ -13,7 +14,7 @@ Given('a raw script is loaded', function () {
 });
 
 When('the script service analyzes unused actions', async function () {
-  analysisResult = await scriptService.process(scriptFilePath);
+  analysisResult = await scriptService.process(undefined, scriptFilePath, undefined);
 });
 
 Then('the analysis should complete successfully', function () {
@@ -29,7 +30,7 @@ Then('the unused actions should be identified', function () {
 });
 
 When('the script service analyzes unused variables', async function () {
-  analysisResult = await scriptService.process(scriptFilePath);
+  analysisResult = await scriptService.process(undefined, scriptFilePath, undefined);
 });
 
 Then('the unused variables should be identified', function () {

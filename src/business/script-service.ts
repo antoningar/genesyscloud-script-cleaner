@@ -1,9 +1,6 @@
 import * as fs from 'fs';
-
-export interface Result {
-  name: string;
-  type: string;
-}
+import { Result, GenesysOAuthConfig } from '../business/models';
+import { GenesysService } from '../genesys/genesys.service';
 
 interface Action {
   id: string;
@@ -21,13 +18,32 @@ interface ScriptStructure {
 }
 
 export class ScriptService {
-  async process(scriptFilePath: string): Promise<Result[]> {
-    const scriptContent = fs.readFileSync(scriptFilePath, 'utf8');
+  private readonly genesysService: GenesysService;
+
+  constructor(genesysService?: GenesysService){
+    this.genesysService = genesysService ?? new GenesysService();
+  }
+
+  async process(scriptId?: string, scriptFilePath?: string, config?: GenesysOAuthConfig): Promise<Result[]> {
+    const scriptContent = await this.getScriptContent(scriptId, scriptFilePath, config);
     
     const unusedActions = this.findUnusedActions(scriptContent);
     const unusedVariables = this.findUnusedVariables(scriptContent);
     
     return [...unusedActions, ...unusedVariables];
+  }
+
+  private async getScriptContent(scriptId?: string, scriptFilePath?: string, config?: GenesysOAuthConfig): Promise<string>{
+    if (scriptId != null && scriptId.trim() !== "" && config != null){
+      this.genesysService.init(config);
+      return this.genesysService.getScript(scriptId!);
+    }
+    else if (scriptFilePath != null && scriptFilePath.trim() !== ""){
+      return fs.readFileSync(scriptFilePath!, 'utf8');
+    }
+    else {
+      return "";
+    }
   }
 
   private findUnusedActions(scriptContent: string): Result[] {
