@@ -15,7 +15,15 @@ export class GenesysService {
   }
 
   async getScript(id: string): Promise<string> {
-    return JSON.stringify(await this.api.getScript(id));
+    const exportResponse = await this.api.postScriptExport(id, { body: { fileName: "script" } });
+    const downloadUrl = exportResponse.url;
+    
+    const response = await fetch(downloadUrl!);
+    if (!response.ok) {
+      throw new Error(`Failed to download script: ${response.statusText}`);
+    }
+    
+    return await response.text();
   }
 
   setLogger() {
