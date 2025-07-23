@@ -35,8 +35,8 @@ export class ScriptService {
 
   private async getScriptContent(scriptId?: string, scriptFilePath?: string, config?: GenesysOAuthConfig): Promise<string>{
     if (scriptId != null && scriptId.trim() !== "" && config != null){
-      this.genesysService.init(config);
-      return this.genesysService.getScript(scriptId!);
+      await this.genesysService.init(config);
+      return await this.genesysService.getScript(scriptId!);
     }
     else if (scriptFilePath != null && scriptFilePath.trim() !== ""){
       return fs.readFileSync(scriptFilePath!, 'utf8');

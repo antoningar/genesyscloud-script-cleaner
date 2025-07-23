@@ -35,6 +35,19 @@ export const handler = async (
     console.log('Event:', JSON.stringify(event, null, 2));
     console.log('Context:', JSON.stringify(context, null, 2));
 
+    if (!event?.script_id || event.script_id.trim() === '') {
+      return {
+        statusCode: 400,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: 'Bad Request: Missing script_id',
+          error: 'script_id is required in the event payload',
+        }),
+      };
+    }
+
     if (!validateOAuthCredentials(context)) {
       return {
         statusCode: 400,
