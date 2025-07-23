@@ -26,9 +26,11 @@ export class ScriptService {
 
   async process(scriptId?: string, scriptFilePath?: string, config?: GenesysOAuthConfig): Promise<Result[]> {
     const scriptContent = await this.getScriptContent(scriptId, scriptFilePath, config);
+    const scriptData: ScriptStructure = JSON.parse(scriptContent);
     
-    const unusedActions = this.findUnusedActions(scriptContent);
-    const unusedVariables = this.findUnusedVariables(scriptContent);
+    const unusedActionIds = this.getUnusedActionIds(scriptContent, scriptData);
+    const unusedActions = this.findUnusedActions(scriptContent, scriptData, unusedActionIds);
+    const unusedVariables = this.findUnusedVariables(scriptContent, scriptData, unusedActionIds);
     
     return [...unusedActions, ...unusedVariables];
   }
@@ -46,45 +48,132 @@ export class ScriptService {
     }
   }
 
-  private findUnusedActions(scriptContent: string): Result[] {
-    const scriptData: ScriptStructure = JSON.parse(scriptContent);
+  private getUnusedActionIds(scriptContent: string, scriptData: ScriptStructure): Set<string> {
+    if (!scriptData.customActions || !Array.isArray(scriptData.customActions)) {
+      return new Set();
+    }
 
+    return new Set(
+      scriptData.customActions
+        .filter(action => {
+          const matches = scriptContent.match(new RegExp(action.id, 'g')) || [];
+          return matches.length === 1;
+        })
+        .map(action => action.id)
+    );
+  }
+
+  private findUnusedActions(scriptContent: string, scriptData: ScriptStructure, unusedActionIds: Set<string>): Result[] {
     if (!scriptData.customActions || !Array.isArray(scriptData.customActions)) {
       return [];
     }
 
-    const unusedActions = scriptData.customActions.filter((action: Action) => {
-      const actionId = action.id;
-      const actionRegex = new RegExp(`${actionId}`, 'g');
-      const matches = scriptContent.match(actionRegex) || [];
-      
-      return matches.length === 1;
-    });
-
-    return unusedActions.map((action: Action) => ({
-      name: action.name,
-      type: 'action'
-    }));
+    return scriptData.customActions
+      .filter(action => {
+        if (unusedActionIds.has(action.id)) {
+          return true;
+        }
+        
+        return this.isSubUnusedAction(action, scriptContent, unusedActionIds);
+      })
+      .map(action => ({ name: action.name, type: 'action' as const }));
   }
 
-  private findUnusedVariables(scriptContent: string): Result[] {
-    const scriptData: ScriptStructure = JSON.parse(scriptContent);
+  private isSubUnusedAction(action: Action, scriptContent: string, unusedActionIds: Set<string>): boolean {
+    const matches = [...scriptContent.matchAll(new RegExp(action.id, 'g'))];
+    
+    if (matches.length <= 1) return false;
 
+    let definitionFound = false;
+    let validUsages = 0;
+    
+    for (const match of matches) {
+      const context = scriptContent.substring(Math.max(0, match.index! - 1000), match.index! + 1000);
+      
+      if (this.isDefinition(context, action)) {
+        definitionFound = true;
+        continue;
+      }
+      
+      if (this.isUsedInUnusedAction(context, action.id, scriptContent, unusedActionIds, match.index!)) {
+        validUsages++;
+      } else {
+        return false;
+      }
+    }
+    
+    return definitionFound && validUsages > 0;
+  }
+
+  private isDefinition(context: string, element: Action | Variable): boolean {
+    return context.includes(`"id":"${element.id}"`) && context.includes(`"name":"${element.name}"`);
+  }
+
+  private isUsedInUnusedAction(context: string, elementId: string, scriptContent: string, unusedActionIds: Set<string>, matchIndex: number): boolean {
+    const isActionNameUsage = context.includes(`"actionName":"${elementId}"`);
+    
+    if (isActionNameUsage) {
+      return [...unusedActionIds].some(unusedId => {
+        const expandedContext = scriptContent.substring(Math.max(0, matchIndex - 1000), matchIndex + 1000);
+        return expandedContext.includes(`"id":"${unusedId}"`);
+      });
+    }
+    
+    return [...unusedActionIds].some(unusedId => context.includes(`"id":"${unusedId}"`));
+  }
+
+  private findUnusedVariables(scriptContent: string, scriptData: ScriptStructure, unusedActionIds: Set<string>): Result[] {
     if (!scriptData.variables || !Array.isArray(scriptData.variables)) {
       return [];
     }
 
-    const unusedVariables = scriptData.variables.filter((variable: Variable) => {
-      const variableId = variable.id;
-      const variableRegex = new RegExp(`${variableId}`, 'g');
-      const matches = scriptContent.match(variableRegex) || [];
-      
-      return matches.length === 1;
-    });
+    return scriptData.variables
+      .filter(variable => {
+        const matches = scriptContent.match(new RegExp(variable.id, 'g')) || [];
+        
+        if (matches.length === 1) {
+          return true;
+        }
+        
+        return this.isSubUnusedVariable(variable, scriptContent, scriptData, unusedActionIds);
+      })
+      .map(variable => ({ name: variable.name, type: 'variable' as const }));
+  }
 
-    return unusedVariables.map((variable: Variable) => ({
-      name: variable.name,
-      type: 'variable'
-    }));
+  private isSubUnusedVariable(variable: Variable, scriptContent: string, scriptData: ScriptStructure, unusedActionIds: Set<string>): boolean {
+    const matches = [...scriptContent.matchAll(new RegExp(variable.id, 'g'))];
+    
+    if (matches.length <= 1) return false;
+
+    let definitionFound = false;
+    let validUsages = 0;
+    
+    for (const match of matches) {
+      const context = scriptContent.substring(Math.max(0, match.index! - 1000), match.index! + 1000);
+      
+      if (this.isDefinition(context, variable)) {
+        definitionFound = true;
+        continue;
+      }
+      
+      const isInUnusedAction = this.isUsedInUnusedAction(context, variable.id, scriptContent, unusedActionIds, match.index!);
+      const isInUnusedVariable = this.isUsedInUnusedVariable(context, variable, scriptContent, scriptData);
+      
+      if (isInUnusedAction || isInUnusedVariable) {
+        validUsages++;
+      } else {
+        return false;
+      }
+    }
+    
+    return definitionFound && validUsages > 0;
+  }
+
+  private isUsedInUnusedVariable(context: string, variable: Variable, scriptContent: string, scriptData: ScriptStructure): boolean {
+    return scriptData.variables.some(v => {
+      if (v.id === variable.id) return false;
+      const vMatches = scriptContent.match(new RegExp(v.id, 'g')) || [];
+      return vMatches.length === 1 && context.includes(`"id":"${v.id}"`);
+    });
   }
 }
