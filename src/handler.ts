@@ -69,11 +69,9 @@ export const handler = async (
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        message: 'Function executed successfully',
-        result: result,
-        timestamp: new Date().toISOString(),
-      }),
+      body: JSON.stringify(
+        result
+      ),
     };
   } catch (error) {
     console.error('Error:', error);
@@ -94,7 +92,7 @@ export const handler = async (
 // CLI runner
 if (require.main === module) {
   const fakeEvent: Event = {
-    script_id: "24232afe-a306-4f76-ab7f-72a983eb9ba0"
+    script_id: ""
   };
 
   const fakeContext: Context = {
