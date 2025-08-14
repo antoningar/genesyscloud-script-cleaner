@@ -1,5 +1,6 @@
 import { ApiClientClass, ApiClient, PureCloudRegionHosts, ScriptsApi } from 'purecloud-platform-client-v2';
 import { GenesysOAuthConfig } from '../business/models';
+import fetch from 'node-fetch';
 
 export class GenesysService {
   client: ApiClientClass = ApiClient.instance;

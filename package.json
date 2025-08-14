@@ -17,7 +17,8 @@
     "purecloud-platform-client-v2": "*",
     "@types/node": "^22",
     "ts-node": "*",
-    "@types/aws-lambda": "*"
+    "@types/aws-lambda": "*",
+    "node-fetch": "3.3.2"
   },
   "devDependencies": {
     "@cucumber/cucumber": "*",
