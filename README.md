@@ -15,21 +15,6 @@ Function to be able to clean unused objects from agent scripts
    npm install
    ```
 
-### Project Structure
-
-```
-├── src/
-│   └── handler.ts          # Lambda handler
-├── business/
-│   └── example-service.ts  # Business logic and services
-├── specs/
-│   └── example.feature     # Gherkin test specifications
-├── dist/                   # Compiled JavaScript output
-├── package.json
-├── tsconfig.json
-└── README.md
-```
-
 ### Development
 
 - **Build TypeScript:** `npm run build`

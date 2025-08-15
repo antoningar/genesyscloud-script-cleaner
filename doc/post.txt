@@ -1,0 +1,11 @@
+Avec le temps, les scripts agents Genesys Cloud deviennent de plus en plus complexes.
+Passé un certain stade, les refactorings via l’interface graphique deviennent laborieux.
+
+Pour simplifier cette étape, j’ai développé un script qui :
+- récupère la version JSON d’un script agent
+- analyse sa structure
+- identifie et liste les variables et actions inutilisées.
+
+Et grâce aux Genesys Cloud Functions, la fonctionnalité est disponible à tout moment.
+
+Code disponible sur mon GitHub :

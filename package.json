@@ -10,20 +10,22 @@
     "build": "tsc",
     "test": "cucumber-js",
     "lint": "eslint src/**/*.ts",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "zip": "npm run clean && npm install --omit=dev && npm run build && zip -r function-script-cleaner.zip dist/ node_modules/"
   },
   "dependencies": {
-    "purecloud-platform-client-v2": "*"
+    "purecloud-platform-client-v2": "*",
+    "@types/node": "^22",
+    "ts-node": "*",
+    "@types/aws-lambda": "*",
+    "node-fetch": "3.3.2"
   },
   "devDependencies": {
     "@cucumber/cucumber": "*",
-    "@types/aws-lambda": "*",
-    "@types/node": "^22",
     "typescript": "^5",
     "@typescript-eslint/eslint-plugin": "*",
     "@typescript-eslint/parser": "*",
-    "eslint": "*",
-    "ts-node": "*"
+    "eslint": "*"
   },
   "keywords": [
     "lambda",
